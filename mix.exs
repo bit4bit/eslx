@@ -11,6 +11,7 @@ defmodule Eslx.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       package: package(),
+      elixirc_paths: elixirc_paths(Mix.env()),
       elixir_options: [
         warnings_as_errors: true
       ]
@@ -24,12 +25,17 @@ defmodule Eslx.MixProject do
     ]
   end
 
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
+
+
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
       {:unifex, "~> 1.1"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
+      {:ranch, "~> 2.1", only: [:dev, :test]}
     ]
   end
 
