@@ -1,6 +1,20 @@
 #include "libesl.h"
 
 #define MUST_STATE(env) if(env->state == NULL) return unifex_raise(env, "not initialize state, please call `init` first")
+#define check_esl_status(env, status, result)        \
+  {                                                  \
+  State *state = (State *)env->state;                \
+  switch(status) {                                   \
+  case ESL_FAIL:                                     \
+    return result ## _result_error(env, "fail");     \
+  case ESL_BREAK:                                    \
+    return result ## _result_error(env, "break");     \
+  case ESL_DISCONNECTED:                                  \
+    return result ## _result_error(env, "disconnected");  \
+  case ESL_GENERR:                                        \
+    return result ## _result_error(env, "generr");        \
+  }\
+  }
 
 UNIFEX_TERM global_set_default_logger(UnifexEnv* env, LoggerLevel level) {
   int esl_level = ESL_LOG_LEVEL_INFO;
@@ -50,17 +64,23 @@ UNIFEX_TERM connect_timeout(UnifexEnv *env, char *host, int port, char *user, ch
     status = esl_connect_timeout(&state->handle, host, port, user, password, timeout);
   }
 
-  switch(status) {
-  case ESL_SUCCESS:
-    return connect_timeout_result(env);
-  case ESL_FAIL:
-    return connect_timeout_result_error(env, "fail");
-  case ESL_BREAK:
-    return connect_timeout_result_error(env, "break");
-  case ESL_DISCONNECTED:
-    return connect_timeout_result_error(env, "disconnected");
-  case ESL_GENERR:
-    return connect_timeout_result_error(env, "generr");
+  check_esl_status(env, status, connect_timeout);
+
+  return connect_timeout_result(env);
+}
+
+
+UNIFEX_TERM send_recv_timed(UnifexEnv *env, char *cmd, int timeout) {
+  MUST_STATE(env);
+  State *state = (State *)env->state;
+
+  esl_status_t status = esl_send_recv_timed(&state->handle, cmd, timeout);
+  check_esl_status(env, status, send_recv_timed);
+
+  if(state->handle.last_sr_event && state->handle.last_sr_event->body) {
+    return send_recv_timed_result_ok(env, state->handle.last_sr_event->body);
+  } else {
+    return send_recv_timed_result_ok(env, state->handle.last_sr_reply);
   }
 }
 

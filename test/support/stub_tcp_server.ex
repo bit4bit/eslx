@@ -28,6 +28,7 @@ defmodule StubTCPServer do
         listener: listener,
         stubs: [],
         stubs_open: [],
+        wait_fors: [],
         events: []
      }}
   end
@@ -61,7 +62,16 @@ defmodule StubTCPServer do
     GenServer.call(server, {{:expect, :open}, label, responser})
   end
 
+  def wait_for(server, label, timeout) do
+    GenServer.call(server, {:wait_for, label}, timeout)
+  end
+
   @impl true
+  def handle_call({:wait_for, label}, from, state) do
+    wait_fors = state.wait_fors ++ [{label, from}]
+    schedule_wait_for(100)
+    {:noreply, %{state | wait_fors: wait_fors}}
+  end
   def handle_call({{:stub, :open}, label, responser}, _from, state) do
     stubs = state.stubs_open ++ [{label, responser}]
     {:reply, :ok, %{state | stubs_open: stubs}}
@@ -78,6 +88,11 @@ defmodule StubTCPServer do
   end
 
   @impl true
+  def handle_info(:wait_for, state) do
+    handle_wait_for(state)
+    schedule_wait_for(100)
+    {:noreply, state}
+  end
   def handle_info({:data, conn, data}, state) do
     new_state =
       state
@@ -85,7 +100,6 @@ defmodule StubTCPServer do
 
     {:noreply, new_state}
   end
-
   def handle_info({:opened, conn}, state) do
     new_state =
       state
@@ -123,11 +137,29 @@ defmodule StubTCPServer do
     |> Enum.reject(&is_nil/1)
     |> Enum.reduce(state, fn {label, responser}, state ->
       responser.(conn)
-        add_event(state, label)
+      add_event(state, label)
     end)
+  end
+
+  defp handle_wait_for(state) do
+    for {label, from} <- state.wait_fors do
+      case List.last(state.events) do
+        nil -> state
+        event ->
+          if event == label do
+            GenServer.reply(from, :ok)
+          end
+      end
+    end
+
+    state
   end
 
   defp add_event(state, event) do
     %{state | events: state.events ++ [event]}
+  end
+
+  defp schedule_wait_for(timeout) do
+    Process.send_after(self(), :wait_for, timeout)
   end
 end

@@ -21,6 +21,10 @@ defmodule LibESL do
   def set_default_logger(cnode, level) when is_atom(level) do
     Unifex.CNode.call(cnode, :global_set_default_logger, [level])
   end
+
+  def send_recv(cnode, cmd, timeout) do
+    Unifex.CNode.call(cnode, :send_recv_timed, [cmd, timeout])
+  end
 end
 
 defmodule LibESL.Inbound do
@@ -30,4 +34,6 @@ defmodule LibESL.Inbound do
       r
     end
   end
+
+  defdelegate send_recv(cnode, cmd, timeout), to: LibESL
 end
