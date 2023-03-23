@@ -13,7 +13,6 @@ defmodule LibESL do
 
   def start_link do
     with {:ok, esl} = r <- Unifex.CNode.start_link(:libesl) do
-      Unifex.CNode.call(esl, :init)
       r
     end
   end
@@ -29,7 +28,7 @@ end
 
 defmodule LibESL.Inbound do
   def start_link(host, port, password, timeout) when is_integer(timeout) do
-    with {:ok, esl} = r <- LibESL.start_link,
+    with {:ok, esl} = r <- LibESL.start_link(),
          :ok <- Unifex.CNode.call(esl, :connect_timeout, [host, port, "", password, timeout]) do
       r
     end

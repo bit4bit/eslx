@@ -84,14 +84,25 @@ UNIFEX_TERM send_recv_timed(UnifexEnv *env, char *cmd, int timeout) {
   }
 }
 
-UNIFEX_TERM init(UnifexEnv *env) {
-  State *state = (State *)unifex_alloc_state(env);
-
-  return init_result_ok(env, state);
-}
-
 void handle_destroy_state(UnifexEnv *env, State *state) {
   UNIFEX_UNUSED(env);
 
   unifex_release_state(env, state);
+}
+
+
+int handle_main(int argc, char **argv) {
+  UnifexEnv env;
+  if (unifex_cnode_init(argc, argv, &env)) {
+    return 1;
+  }
+
+  State *state = (State *)unifex_alloc_state(&env);
+  env.state = state;
+  while (!unifex_cnode_receive(&env))
+    ;
+  esl_disconnect(&state->handle);
+
+  unifex_cnode_destroy(&env);
+  return 0;
 }
