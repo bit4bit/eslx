@@ -12,9 +12,7 @@ defmodule LibESL do
   end
 
   def start_link do
-    with {:ok, esl} = r <- Unifex.CNode.start_link(:libesl) do
-      r
-    end
+    Unifex.CNode.start_link(:libesl)
   end
 
   def set_default_logger(cnode, level) when is_atom(level) do
@@ -23,6 +21,10 @@ defmodule LibESL do
 
   def send_recv(cnode, cmd, timeout) do
     Unifex.CNode.call(cnode, :send_recv_timed, [cmd, timeout])
+  end
+
+  def close(cnode) do
+    Unifex.CNode.stop(cnode)
   end
 end
 
