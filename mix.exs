@@ -10,6 +10,7 @@ defmodule Eslx.MixProject do
       compilers: [:unifex, :bundlex] ++ Mix.compilers, # add unifex and bundlex to compilers
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      package: package(),
       elixir_options: [
         warnings_as_errors: true
       ]
