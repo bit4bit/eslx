@@ -15,22 +15,25 @@ defmodule StubTCPServer do
   @impl true
   def init([]) do
     name = "stub-tcp-server-#{:erlang.monotonic_time()}" |> String.to_atom()
-    {:ok, listener} = :ranch.start_listener(
-      name,
-      :ranch_tcp,
-      %{},
-      Protocol,
-      [self()]
-    )
 
-    {:ok, %{
-        name: name,
-        listener: listener,
-        stubs: [],
-        stubs_open: [],
-        wait_fors: [],
-        connections: MapSet.new(),
-        events: []
+    {:ok, listener} =
+      :ranch.start_listener(
+        name,
+        :ranch_tcp,
+        %{},
+        Protocol,
+        [self()]
+      )
+
+    {:ok,
+     %{
+       name: name,
+       listener: listener,
+       stubs: [],
+       stubs_open: [],
+       wait_fors: [],
+       connections: MapSet.new(),
+       events: []
      }}
   end
 
@@ -71,22 +74,27 @@ defmodule StubTCPServer do
 
     {:reply, :ok, state}
   end
+
   def handle_call({:wait_for, label}, from, state) do
     wait_fors = state.wait_fors ++ [{label, from}]
     schedule_wait_for(100)
     {:noreply, %{state | wait_fors: wait_fors}}
   end
+
   def handle_call({{:stub, :open}, label, responser}, _from, state) do
     stubs = state.stubs_open ++ [{label, responser}]
     {:reply, :ok, %{state | stubs_open: stubs}}
   end
+
   def handle_call({{:stub, :data}, label, req, responser}, _from, state) do
     stubs = state.stubs ++ [{label, req, responser}]
     {:reply, :ok, %{state | stubs: stubs}}
   end
+
   def handle_call(:port, _from, %{name: name} = state) do
     {:reply, :ranch.get_port(name), state}
   end
+
   def handle_call(:events, _from, state) do
     {:reply, state.events, state}
   end
@@ -97,6 +105,7 @@ defmodule StubTCPServer do
     schedule_wait_for(100)
     {:noreply, state}
   end
+
   def handle_info({:data, conn, data}, state) do
     new_state =
       state
@@ -105,9 +114,10 @@ defmodule StubTCPServer do
 
     {:noreply, new_state}
   end
+
   def handle_info({:opened, conn}, state) do
     new_state =
-            state
+      state
       |> handle_stubs(:opened, conn)
       |> cache_connection(conn)
 
@@ -117,6 +127,7 @@ defmodule StubTCPServer do
   defp handle_stubs(state, :opened, conn) do
     handle_mocks(state, state.stubs_open, :open, conn)
   end
+
   defp handle_stubs(state, :data, conn, data) do
     handle_mocks(state, state.stubs, :data, conn, data)
   end
@@ -131,6 +142,7 @@ defmodule StubTCPServer do
       add_event(state, label)
     end)
   end
+
   defp handle_mocks(state, doubles, :data, conn, data) do
     doubles
     |> Enum.map(fn {label, req, responser} ->
@@ -150,7 +162,9 @@ defmodule StubTCPServer do
   defp handle_wait_for(state) do
     for {label, from} <- state.wait_fors do
       case List.last(state.events) do
-        nil -> state
+        nil ->
+          state
+
         event ->
           if event == label do
             GenServer.reply(from, :ok)

@@ -28,10 +28,13 @@ defmodule StubTCPServerTest do
   end
 
   defp send_data(server, data) do
-    {:ok, client} = :gen_tcp.connect(
-      StubTCPServer.host(server) |> to_charlist(),
-      StubTCPServer.port(server), [:binary, active: false])
+    {:ok, client} =
+      :gen_tcp.connect(
+        StubTCPServer.host(server) |> to_charlist(),
+        StubTCPServer.port(server),
+        [:binary, active: false]
+      )
 
-    :ok = :gen_tcp.send(client, data |> to_charlist());
+    :ok = :gen_tcp.send(client, data |> to_charlist())
   end
 end

@@ -30,7 +30,7 @@ Reply-Text: +OK event listener enabled plain
 
   test "notify events" do
     server = start_supervised!(StubTCPServer)
-      event_content = ~s(Event-Name: API
+    event_content = ~s(Event-Name: API
 Core-UUID: 5a0226ce-e06e-4235-9627-1834fc204408
 FreeSWITCH-Hostname: 076d7ff313e4
 FreeSWITCH-Switchname: 16.20.0.9
@@ -46,19 +46,21 @@ Event-Sequence: 742
 API-Command: show
 API-Command-Argument: calls%20as%20json)
 
-      event_data = ~s(Content-Length: 525
+    event_data = ~s(Content-Length: 525
 Content-Type: text/event-plain
 
 #{event_content}
 
 )
-      StubTCPServer.stub_open(server, :opened, fn conn ->
-        StubTCPServer.Conn.resp(conn, "Content-Type: auth/request\n\n")
+
+    StubTCPServer.stub_open(server, :opened, fn conn ->
+      StubTCPServer.Conn.resp(conn, "Content-Type: auth/request\n\n")
     end)
 
     StubTCPServer.stub(server, :logged_in, "auth password\n\n", fn conn ->
       StubTCPServer.Conn.resp(conn, "Content-Type: command/reply\nReply-Text: +OK accepted\n\n")
     end)
+
     {:ok, _} =
       LibESL.Events.start_link(
         StubTCPServer.host(server),
@@ -68,6 +70,7 @@ Content-Type: text/event-plain
       )
 
     StubTCPServer.wait_for(server, :logged_in, 1_000)
+
     StubTCPServer.connections(server, fn conn ->
       StubTCPServer.Conn.resp(conn, event_data)
     end)

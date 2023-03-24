@@ -22,6 +22,7 @@ defmodule StubTCPServer.Protocol do
       {:ok, data} ->
         Internal.handle_data(server, conn, data)
         loop(socket, transport, server, conn)
+
       _ ->
         :ok = transport.close(socket)
     end
