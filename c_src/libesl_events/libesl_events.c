@@ -1,4 +1,4 @@
-#include "libesl.h"
+#include "libesl_events.h"
 
 #define MUST_STATE(env) if(env->state == NULL) return unifex_raise(env, "not initialize state, please call `init` first")
 #define check_esl_status(env, status, result)        \
@@ -16,43 +16,6 @@
   }\
   }
 
-UNIFEX_TERM global_set_default_logger(UnifexEnv* env, LoggerLevel level) {
-  int esl_level = ESL_LOG_LEVEL_INFO;
-
-  switch(level) {
-  case LOGGER_LEVEL_EMERG:
-    esl_level = ESL_LOG_LEVEL_EMERG;
-    break;
-  case LOGGER_LEVEL_ALERT:
-    esl_level = ESL_LOG_LEVEL_ALERT;
-    break;
-  case LOGGER_LEVEL_CRIT:
-    esl_level = ESL_LOG_LEVEL_CRIT;
-    break;
-  case LOGGER_LEVEL_ERROR:
-    esl_level = ESL_LOG_LEVEL_ERROR;
-    break;
-  case LOGGER_LEVEL_WARNING:
-    esl_level = ESL_LOG_LEVEL_WARNING;
-    break;
-  case LOGGER_LEVEL_NOTICE:
-    esl_level = ESL_LOG_LEVEL_NOTICE;
-    break;
-  case LOGGER_LEVEL_INFO:
-    esl_level = ESL_LOG_LEVEL_INFO;
-    break;
-  case LOGGER_LEVEL_DEBUG:
-    esl_level = ESL_LOG_LEVEL_DEBUG;
-    break;
-  default:
-    esl_level = ESL_LOG_LEVEL_INFO;
-  }
-
-  esl_global_set_default_logger(esl_level);
-
-  return global_set_default_logger_result(env);
-}
-
 UNIFEX_TERM connect_timeout(UnifexEnv *env, char *host, int port, char *user, char *password, int timeout) {
   MUST_STATE(env);
   esl_status_t status;
@@ -65,23 +28,18 @@ UNIFEX_TERM connect_timeout(UnifexEnv *env, char *host, int port, char *user, ch
   }
 
   check_esl_status(env, status, connect_timeout);
-
+  if(status == ESL_SUCCESS)
+    state->polling_events = 1;
   return connect_timeout_result(env);
 }
 
-
-UNIFEX_TERM send_recv_timed(UnifexEnv *env, char *cmd, int timeout) {
+UNIFEX_TERM events(UnifexEnv *env, char *values) {
   MUST_STATE(env);
   State *state = (State *)env->state;
 
-  esl_status_t status = esl_send_recv_timed(&state->handle, cmd, timeout);
-  check_esl_status(env, status, send_recv_timed);
-
-  if(state->handle.last_sr_event && state->handle.last_sr_event->body) {
-    return send_recv_timed_result_ok(env, state->handle.last_sr_event->body);
-  } else {
-    return send_recv_timed_result_ok(env, state->handle.last_sr_reply);
-  }
+  esl_status_t status = esl_events(&state->handle, ESL_EVENT_TYPE_PLAIN, values);
+  check_esl_status(env, status, events);
+  return events_result(env);
 }
 
 void handle_destroy_state(UnifexEnv *env, State *state) {
@@ -92,16 +50,38 @@ void handle_destroy_state(UnifexEnv *env, State *state) {
 
 int handle_main(int argc, char **argv) {
   UnifexEnv env;
+
   if (unifex_cnode_init(argc, argv, &env)) {
     return 1;
   }
 
   State *state = (State *)unifex_alloc_state(&env);
+  state->polling_events = 0;
   env.state = state;
-  while (!unifex_cnode_receive(&env))
-    ;
-  esl_disconnect(&state->handle);
 
+  // TODO: when this fail LibESL.Events blocks the process why?
+  // reproducible? run multiple times the test
+  while (!unifex_cnode_receive(&env)) {
+    if (state->polling_events == 0)
+      continue;
+    esl_status_t status = esl_recv_timed(&state->handle, 5);
+    if (status == ESL_FAIL || status == ESL_DISCONNECTED || status == ESL_GENERR) {
+      break;
+    }
+
+    if (status == ESL_SUCCESS) {
+      const char *type = esl_event_get_header(state->handle.last_event, "content-type");
+      if (type && !strcasecmp(type, "text/disconnect-notice")) {
+        break;
+      }
+      char *json;
+      esl_event_serialize_json(state->handle.last_ievent, &json);
+      send_esl_event(&env, *(env.reply_to), 0, json);
+      if (json)
+        free(json);
+    }
+  }
+  esl_disconnect(&state->handle);
   unifex_cnode_destroy(&env);
   return 0;
 }

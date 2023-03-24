@@ -18,6 +18,15 @@ defmodule Toxico.BundlexProject do
           {:eslx, :freeswitch_esl}
         ],
         preprocessor: Unifex
+      ],
+      libesl_events: [
+        sources: ["libesl_events.c"],
+        src_base: "libesl_events",
+        interface: [:cnode],
+        deps: [
+          {:eslx, :freeswitch_esl}
+        ],
+        preprocessor: Unifex
       ]
     ]
   end
@@ -25,7 +34,7 @@ defmodule Toxico.BundlexProject do
   defp libs() do
     freeswitch_esl_sources =
       File.ls!("c_src/freeswitch_esl")
-      |> Enum.filter(&(String.ends_with?(&1, [".c", ".h"])))
+      |> Enum.filter(&String.ends_with?(&1, [".c", ".h"]))
 
     [
       freeswitch_esl: [
