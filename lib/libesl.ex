@@ -23,6 +23,10 @@ defmodule LibESL do
     Unifex.CNode.call(cnode, :send_recv_timed, [cmd, timeout])
   end
 
+  def recv_event(cnode, timeout) do
+    Unifex.CNode.call(cnode, :recv_event_timed, [timeout])
+  end
+
   def close(cnode) do
     Unifex.CNode.stop(cnode)
   end
@@ -37,4 +41,5 @@ defmodule LibESL.Inbound do
   end
 
   defdelegate send_recv(cnode, cmd, timeout), to: LibESL
+  defdelegate recv_event(cnode, timeout), to: LibESL
 end

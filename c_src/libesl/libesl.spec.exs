@@ -19,3 +19,8 @@ spec(
   send_recv_timed(cmd :: string, timeout :: int) ::
     {:ok :: label, string()} | {:error :: label, atom()}
 )
+
+spec(
+  recv_event_timed(timeout :: int) ::
+    {:ok :: label, string()} | {:error :: label, atom()}
+)

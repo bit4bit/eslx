@@ -7,7 +7,8 @@ defmodule Eslx.MixProject do
       version: "0.1.0",
       elixir: "~> 1.13",
       description: "freeswitch connector using esl.c",
-      compilers: [:unifex, :bundlex] ++ Mix.compilers, # add unifex and bundlex to compilers
+      # add unifex and bundlex to compilers
+      compilers: [:unifex, :bundlex] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       package: package(),
@@ -28,13 +29,13 @@ defmodule Eslx.MixProject do
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
 
-
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
       {:unifex, "~> 1.1"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
+      {:jason, "~> 1.4"},
       {:ranch, "~> 2.1", only: [:dev, :test]}
     ]
   end

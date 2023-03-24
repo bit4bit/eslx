@@ -84,6 +84,17 @@ UNIFEX_TERM send_recv_timed(UnifexEnv *env, char *cmd, int timeout) {
   }
 }
 
+UNIFEX_TERM recv_event_timed(UnifexEnv *env, int timeout) {
+  MUST_STATE(env);
+  State *state = (State *)env->state;
+
+  esl_status_t status = esl_recv_timed(&state->handle, timeout);
+  check_esl_status(env, status, recv_event_timed);
+  char *txt;
+  esl_event_serialize_json(state->handle.last_ievent, &txt);
+  return recv_event_timed_result_ok(env, txt);
+}
+
 void handle_destroy_state(UnifexEnv *env, State *state) {
   UNIFEX_UNUSED(env);
 
