@@ -33,9 +33,10 @@ defmodule Eslx.MixProject do
   defp deps do
     [
       {:unifex, "~> 1.1"},
+      {:jason, "~> 1.4"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
-      {:jason, "~> 1.4"},
+      {:benchee, "~> 1.1", only: :dev},
       {:ranch, "~> 2.1", only: [:dev, :test]}
     ]
   end

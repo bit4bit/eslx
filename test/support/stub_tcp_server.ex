@@ -29,6 +29,7 @@ defmodule StubTCPServer do
         stubs: [],
         stubs_open: [],
         wait_fors: [],
+        connections: MapSet.new(),
         events: []
      }}
   end
@@ -54,12 +55,8 @@ defmodule StubTCPServer do
     GenServer.call(server, {{:stub, :open}, label, responser})
   end
 
-  def expect(server, label, req, responser) do
-    GenServer.call(server, {{:expect, :data}, label, req, responser})
-  end
-
-  def expect_open(server, label, responser) do
-    GenServer.call(server, {{:expect, :open}, label, responser})
+  def connections(server, responser) do
+    GenServer.call(server, {:connections, responser})
   end
 
   def wait_for(server, label, timeout) do
@@ -67,6 +64,13 @@ defmodule StubTCPServer do
   end
 
   @impl true
+  def handle_call({:connections, responser}, _from, state) do
+    for conn <- state.connections do
+      responser.(conn)
+    end
+
+    {:reply, :ok, state}
+  end
   def handle_call({:wait_for, label}, from, state) do
     wait_fors = state.wait_fors ++ [{label, from}]
     schedule_wait_for(100)
@@ -97,13 +101,15 @@ defmodule StubTCPServer do
     new_state =
       state
       |> handle_stubs(:data, conn, data)
+      |> cache_connection(conn)
 
     {:noreply, new_state}
   end
   def handle_info({:opened, conn}, state) do
     new_state =
-      state
+            state
       |> handle_stubs(:opened, conn)
+      |> cache_connection(conn)
 
     {:noreply, new_state}
   end
@@ -153,6 +159,11 @@ defmodule StubTCPServer do
     end
 
     state
+  end
+
+  defp cache_connection(state, conn) do
+    connections = MapSet.put(state.connections, conn)
+    %{state | connections: connections}
   end
 
   defp add_event(state, event) do
