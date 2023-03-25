@@ -1,6 +1,18 @@
 defmodule ESLx do
   @moduledoc """
   `ESLx` a layer for Freeswitch Event Socket Protocol
+
+  ## Examples
+
+  ### Listening Events
+      iex> {:ok, esl} = ESLx.Events.start_link(URI.parse("esl://:ClueCon@localhost:8021"), 3_000)
+      iex> ESLx.Events.events(esl, "ALL")
+      iex> flush().
+      ...
+
+  ### Execute api
+      iex> ESLx.api(URI.parse("esl://:ClueCon@localhost:8021"), "uptime", [])
+      ...
   """
 
   alias ESLx.ConnectionDetails

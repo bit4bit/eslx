@@ -3,30 +3,8 @@
 A layer for Freeswitch Event Socket Protocol.
 
 ## Usage
-### Execute api
 
-~~~iex
-case ESLx.api(URI.parse("esl://:ClueCon@localhost:8021"), "uptime", 3_000) do
-  {:ok, response} ->
-   ...
-  {:error, error} ->
-    ...
-end
-~~~
-
-### Listening events
-
-~~~iex
-{:ok, esl} = ESLx.Events.start_link(URI.parse("esl://:ClueCon@localhost:8021"), 3_000)
-ESLx.Events.events(esl, "ALL")
-
-# receive the serialized event
-receive do
-  {:esl_event, event_data} ->
-    event = Jason.decode!(event_data)
-    ...
-    
-~~~
+API documentation is available at <https://hexdocs.pm/eslx>.
 
 ## Installation
 
@@ -36,7 +14,7 @@ by adding `eslx` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:eslx, "~> 0.1.0"}
+    {:eslx, "~> 0.1"}
   ]
 end
 ```
