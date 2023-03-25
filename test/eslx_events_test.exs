@@ -1,4 +1,4 @@
-defmodule ESLx.LibESLEventsTest do
+defmodule ESLx.EventsTest do
   use ExUnit.Case
 
   test "event" do
@@ -17,15 +17,12 @@ Reply-Text: +OK event listener enabled plain
       StubTCPServer.Conn.resp(conn, data)
     end)
 
-    {:ok, esl} =
-      ESLx.LibESL.Events.start_link(
-        StubTCPServer.host(server),
-        StubTCPServer.port(server),
-        "password",
-        1000
-      )
+    esl_url =
+      URI.parse("esl://:password@#{StubTCPServer.host(server)}:#{StubTCPServer.port(server)}")
 
-    assert :ok = ESLx.LibESL.Events.events(esl, "ALL")
+    {:ok, esl} = ESLx.Events.start_link(esl_url, 1000)
+
+    assert :ok = ESLx.Events.events(esl, "ALL")
   end
 
   test "notify events" do
@@ -61,13 +58,10 @@ Content-Type: text/event-plain
       StubTCPServer.Conn.resp(conn, "Content-Type: command/reply\nReply-Text: +OK accepted\n\n")
     end)
 
-    {:ok, _} =
-      ESLx.LibESL.Events.start_link(
-        StubTCPServer.host(server),
-        StubTCPServer.port(server),
-        "password",
-        1000
-      )
+    esl_url =
+      URI.parse("esl://:password@#{StubTCPServer.host(server)}:#{StubTCPServer.port(server)}")
+
+    {:ok, _esl} = ESLx.Events.start_link(esl_url, 1000)
 
     StubTCPServer.wait_for(server, :logged_in, 1_000)
 

@@ -4,7 +4,7 @@ defmodule Eslx.MixProject do
   def project do
     [
       app: :eslx,
-      version: "0.1.0",
+      version: "0.1.1",
       elixir: "~> 1.13",
       description: "freeswitch connector using esl.c",
       # add unifex and bundlex to compilers
