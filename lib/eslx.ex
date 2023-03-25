@@ -15,20 +15,20 @@ defmodule ESLx do
     command_timeout = Keyword.get(opts, :command_timeout, 1_000)
 
     {:ok, esl} =
-      LibESL.Inbound.start_link(
+      ESLx.LibESL.Inbound.start_link(
         ConnectionDetails.host(connection_details),
         ConnectionDetails.port(connection_details),
         ConnectionDetails.password(connection_details),
         connection_timeout
       )
 
-    case LibESL.send_recv(esl, "api #{cmd}\n\n", command_timeout) do
+    case ESLx.LibESL.send_recv(esl, "api #{cmd}\n\n", command_timeout) do
       {:ok, data} ->
-        LibESL.close(esl)
+        ESLx.LibESL.close(esl)
         data
 
       {:error, _error} ->
-        LibESL.close(esl)
+        ESLx.LibESL.close(esl)
         :error
     end
   end

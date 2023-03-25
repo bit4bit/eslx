@@ -1,4 +1,4 @@
-module(LibESL)
+module(ESLx.LibESL)
 
 interface([CNode])
 

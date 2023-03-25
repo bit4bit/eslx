@@ -1,10 +1,10 @@
-defmodule LibESLTest do
+defmodule ESLx.LibESLTest do
   use ExUnit.Case
 
   test "esl_global_set_default_logger/1" do
-    {:ok, esl} = LibESL.start_link()
+    {:ok, esl} = ESLx.LibESL.start_link()
 
-    assert :ok = LibESL.set_default_logger(esl, :info)
+    assert :ok = ESLx.LibESL.set_default_logger(esl, :info)
   end
 
   test "open tcp" do
@@ -14,7 +14,7 @@ defmodule LibESLTest do
       StubTCPServer.Conn.close(conn)
     end)
 
-    LibESL.Inbound.start_link(
+    ESLx.LibESL.Inbound.start_link(
       StubTCPServer.host(server),
       StubTCPServer.port(server),
       "password",
@@ -36,7 +36,7 @@ defmodule LibESLTest do
     end)
 
     assert {:ok, _} =
-             LibESL.Inbound.start_link(
+             ESLx.LibESL.Inbound.start_link(
                StubTCPServer.host(server),
                StubTCPServer.port(server),
                "password",
@@ -60,7 +60,7 @@ defmodule LibESLTest do
     end)
 
     {:ok, esl} =
-      LibESL.Inbound.start_link(
+      ESLx.LibESL.Inbound.start_link(
         StubTCPServer.host(server),
         StubTCPServer.port(server),
         "password",
@@ -69,6 +69,6 @@ defmodule LibESLTest do
 
     StubTCPServer.wait_for(server, :logged_in, 1000)
 
-    assert {:ok, "123456"} = LibESL.Inbound.send_recv(esl, "api uptime\n\n", 1000)
+    assert {:ok, "123456"} = ESLx.LibESL.Inbound.send_recv(esl, "api uptime\n\n", 1000)
   end
 end

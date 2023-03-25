@@ -1,4 +1,4 @@
-defmodule LibESLEventsTest do
+defmodule ESLx.LibESLEventsTest do
   use ExUnit.Case
 
   test "event" do
@@ -18,14 +18,14 @@ Reply-Text: +OK event listener enabled plain
     end)
 
     {:ok, esl} =
-      LibESL.Events.start_link(
+      ESLx.LibESL.Events.start_link(
         StubTCPServer.host(server),
         StubTCPServer.port(server),
         "password",
         1000
       )
 
-    assert :ok = LibESL.Events.events(esl, "ALL")
+    assert :ok = ESLx.LibESL.Events.events(esl, "ALL")
   end
 
   test "notify events" do
@@ -62,7 +62,7 @@ Content-Type: text/event-plain
     end)
 
     {:ok, _} =
-      LibESL.Events.start_link(
+      ESLx.LibESL.Events.start_link(
         StubTCPServer.host(server),
         StubTCPServer.port(server),
         "password",

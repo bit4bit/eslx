@@ -1,4 +1,4 @@
-module(LibESL.Events)
+module(ESLx.LibESL.Events)
 
 interface([CNode])
 

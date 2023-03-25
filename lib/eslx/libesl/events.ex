@@ -1,4 +1,4 @@
-defmodule LibESL.Events do
+defmodule ESLx.LibESL.Events do
   @moduledoc """
   When freeswitch generate a lot events and we pull too slow,
   we can easily overflow the internal queue, this implementation uses esl.c
