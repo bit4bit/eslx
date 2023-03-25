@@ -1,9 +1,10 @@
 defmodule ESLx.LibESL.Events do
-  @moduledoc """
-  When freeswitch generate a lot events and we pull too slow,
-  we can easily overflow the internal queue, this implementation uses esl.c
-  for pulling in faster way (not tested in production yet).
-  """
+  @moduledoc false
+
+  # When freeswitch generate a lot events and we pull too slow,
+  # we can easily overflow the internal queue, this implementation uses esl.c
+  # for pulling in faster way (not tested in production yet).
+
   require Unifex.CNode
 
   def start_link(host, port, password, timeout) when is_integer(timeout) do

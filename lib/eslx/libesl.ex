@@ -1,4 +1,6 @@
 defmodule ESLx.LibESL do
+  @moduledoc false
+
   require Unifex.CNode
 
   def child_spec(_opts) do
