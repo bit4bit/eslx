@@ -101,6 +101,7 @@ int handle_main(int argc, char **argv) {
   while (!unifex_cnode_receive(&env))
     ;
   esl_disconnect(&state->handle);
+  unifex_release_state(&env, state);
 
   unifex_cnode_destroy(&env);
   return 0;
