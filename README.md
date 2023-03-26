@@ -2,6 +2,11 @@
 
 A layer for Freeswitch Event Socket Protocol.
 
+## Tested
+
+* Elixir 1.13.4 (Working)
+* Elixir 1.14.1 (Partially)
+
 ## Usage
 
 API documentation is available at <https://hexdocs.pm/eslx>.
