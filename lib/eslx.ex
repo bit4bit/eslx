@@ -23,15 +23,19 @@ defmodule ESLx do
     """
 
     def start_link(connection_details, timeout) do
-      ESLx.LibESL.Events.start_link(
-        ConnectionDetails.host(connection_details),
-        ConnectionDetails.port(connection_details),
-        ConnectionDetails.password(connection_details),
-        timeout
-      )
+      # ESLx.LibESL.Events.start_
+      {:ok,
+       ESLx.FreeswitchESLRs.Events.start_link(
+         self(),
+         ConnectionDetails.host(connection_details),
+         ConnectionDetails.port(connection_details),
+         ConnectionDetails.password(connection_details),
+         timeout
+       )}
     end
 
-    defdelegate events(node, events), to: ESLx.LibESL.Events
+    # defdelegate events(node, events), to: ESLx.LibESL.Events
+    defdelegate events(node, events), to: ESLx.FreeswitchESLRs.Events
   end
 
   @doc """

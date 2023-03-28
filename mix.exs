@@ -34,6 +34,7 @@ defmodule Eslx.MixProject do
     [
       {:unifex, "~> 1.1"},
       {:jason, "~> 1.4"},
+      {:rustler, "~> 0.27.0"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:benchee, "~> 1.1", only: :dev},

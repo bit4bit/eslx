@@ -33,6 +33,7 @@ defmodule StubTCPServer do
        stubs_open: [],
        wait_fors: [],
        connections: MapSet.new(),
+       buffer_data: "",
        events: []
      }}
   end
@@ -107,12 +108,18 @@ defmodule StubTCPServer do
   end
 
   def handle_info({:data, conn, data}, state) do
-    new_state =
-      state
-      |> handle_stubs(:data, conn, data)
-      |> cache_connection(conn)
+    case read(state, data) do
+      {:more, new_state} ->
+        {:noreply, new_state}
 
-    {:noreply, new_state}
+      {:frame, data, state} ->
+        new_state =
+          state
+          |> handle_stubs(:data, conn, data)
+          |> cache_connection(conn)
+
+        {:noreply, new_state}
+    end
   end
 
   def handle_info({:opened, conn}, state) do
@@ -186,5 +193,18 @@ defmodule StubTCPServer do
 
   defp schedule_wait_for(timeout) do
     Process.send_after(self(), :wait_for, timeout)
+  end
+
+  defp read(state, data) do
+    state = %{state | buffer_data: state.buffer_data <> data}
+
+    case String.split(state.buffer_data, "\n\n", parts: 2) do
+      [frame, rest] ->
+        state = %{state | buffer_data: rest}
+        {:frame, "#{frame}\n\n", state}
+
+      _ ->
+        {:more, state}
+    end
   end
 end

@@ -26,3 +26,5 @@ eslx-*.tar
 /tmp/
 
 mix.lock
+
+priv/native

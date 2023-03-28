@@ -6,6 +6,9 @@ defmodule ESLx.EventsTest do
 
     StubTCPServer.stub_open(server, :opened, fn conn ->
       StubTCPServer.Conn.resp(conn, "Content-Type: auth/request\n\n")
+    end)
+
+    StubTCPServer.stub(server, :logged_in, "auth password\n\n", fn conn ->
       StubTCPServer.Conn.resp(conn, "Content-Type: command/reply\nReply-Text: +OK accepted\n\n")
     end)
 
@@ -17,11 +20,12 @@ Reply-Text: +OK event listener enabled plain
       StubTCPServer.Conn.resp(conn, data)
     end)
 
+    Process.sleep(300)
+
     esl_url =
       URI.parse("esl://:password@#{StubTCPServer.host(server)}:#{StubTCPServer.port(server)}")
 
     {:ok, esl} = ESLx.Events.start_link(esl_url, 1000)
-
     assert :ok = ESLx.Events.events(esl, "ALL")
   end
 
@@ -73,7 +77,7 @@ Content-Type: text/event-plain
       {:esl_event, data} ->
         assert %{
                  "Event-Name" => "API"
-               } = Jason.decode!(data)
+               } = data
     after
       1_000 ->
         raise "timeout"
