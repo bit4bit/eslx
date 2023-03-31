@@ -74,7 +74,7 @@ Content-Type: text/event-plain
     end)
 
     receive do
-      {:esl_event, data} ->
+      {:eslx, {:event, data}} ->
         assert %{
                  "Event-Name" => "API"
                } = data

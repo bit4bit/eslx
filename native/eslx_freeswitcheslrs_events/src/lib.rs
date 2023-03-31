@@ -71,21 +71,27 @@ fn spawn_dispatcher(env: Env<'_>, listener: LocalPid, client: FSConn) {
         Ok(event) => {
           let dto: HashMap<String, String> = event.into();
           // {:esl_event, %{...}}_
-          env.send(&listener, (Atom::from_str(env, "esl_event").unwrap(), dto).encode(env));
+          env.send(&listener, (atom_from_str(env, "eslx"), (atom_from_str(env, "event"), dto)).encode(env));
         }
         Err(error) => {
-          match error {
+          let ret_err = match error {
             fs::ClientError::ConnectionClose =>
-              //:connection_closed
-              env.send(&listener, Atom::from_str(env, "connection_closed").unwrap().to_term(env)),
+              //{:eslx, :connection_closed}
+              (atom_from_str(env, "eslx"), atom_from_str(env, "connection_closed")).encode(env),
             _ =>
-              //{:error, "..."}
-              env.send(&listener, (Atom::from_str(env, "error").unwrap(), format!("{}", error)).encode(env))
-          }
+            //{:esl, {:error, "..."}}
+              (atom_from_str(env, "eslx"), (atom_from_str(env, "error"), format!("{}", error))).encode(env)
+          };
+          env.send(&listener, ret_err);
+          return ret_err;
         }
       }
     }
   });
+}
+
+fn atom_from_str(env: Env, name: &str) -> Atom {
+  Atom::from_str(env, name).unwrap()
 }
 
 fn load(env: Env, _: Term) -> bool {
