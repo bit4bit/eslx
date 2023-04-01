@@ -8,7 +8,7 @@ defmodule Eslx.MixProject do
       elixir: "~> 1.13",
       description: "freeswitch connector using esl.c",
       # add unifex and bundlex to compilers
-      compilers: [:unifex, :bundlex] ++ Mix.compilers(),
+      compilers: Mix.compilers(),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       package: package(),
@@ -32,7 +32,6 @@ defmodule Eslx.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:unifex, "~> 1.1"},
       {:jason, "~> 1.4"},
       {:rustler, "~> 0.27.0"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},

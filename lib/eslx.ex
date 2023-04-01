@@ -41,27 +41,27 @@ defmodule ESLx do
   @doc """
   executes api once and closes connection
   """
-  @spec api(ConnectionDetails.t(), cmd :: String.t(), timeout :: pos_integer()) ::
+  @spec api(ConnectionDetails.t(), cmd :: String.t(), arg :: String.t(), timeout :: pos_integer()) ::
           {:ok, String.t()} | :error
-  def api(connection_details, cmd, opts) do
+  def api(connection_details, cmd, arg, opts) do
     connection_timeout = Keyword.get(opts, :connect_timeout, 1_000)
     command_timeout = Keyword.get(opts, :command_timeout, 1_000)
 
-    {:ok, esl} =
-      ESLx.LibESL.Inbound.start_link(
+    esl =
+      ESLx.FreeswitchESLRs.API.start_link(
         ConnectionDetails.host(connection_details),
         ConnectionDetails.port(connection_details),
         ConnectionDetails.password(connection_details),
         connection_timeout
       )
 
-    case ESLx.LibESL.send_recv(esl, "api #{cmd}\n\n", command_timeout) do
+    case ESLx.FreeswitchESLRs.API.api(esl, cmd, arg, command_timeout) do
       {:ok, data} ->
-        ESLx.LibESL.close(esl)
+        ESLx.FreeswitchESLRs.API.close(esl)
         data
 
       {:error, _error} ->
-        ESLx.LibESL.close(esl)
+        ESLx.FreeswitchESLRs.API.close(esl)
         :error
     end
   end

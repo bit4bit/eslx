@@ -12,11 +12,11 @@ defmodule EslxTest do
       StubTCPServer.Conn.resp(conn, "Content-Type: command/reply\nReply-Text: +OK accepted\n\n")
     end)
 
-    StubTCPServer.stub(server, :api, "api uptime\n\n", fn conn ->
+    StubTCPServer.stub(server, :api, "api uptime \n\n", fn conn ->
       StubTCPServer.Conn.resp(conn, "Content-Type: api/response\nContent-Length: 6\n\n123456")
     end)
 
     url = "esl://:password@#{StubTCPServer.host(server)}:#{StubTCPServer.port(server)}"
-    assert "123456" == ESLx.api(URI.parse(url), "uptime", [])
+    assert "123456" == ESLx.api(URI.parse(url), "uptime", "", [])
   end
 end
