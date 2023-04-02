@@ -168,14 +168,8 @@ defmodule StubTCPServer do
 
   defp handle_wait_for(state) do
     for {label, from} <- state.wait_fors do
-      case List.last(state.events) do
-        nil ->
-          state
-
-        event ->
-          if event == label do
-            GenServer.reply(from, :ok)
-          end
+      if label in state.events do
+        GenServer.reply(from, :ok)
       end
     end
 

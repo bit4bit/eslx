@@ -24,13 +24,18 @@ fn start_link<'a>(env: Env<'a>,
                   listener: LocalPid,
                   host: &'a str, port: i32,
                   password: &'a str,
+                  events: &'a str,
                   timeout: u64) -> NifResult<ResourceArc<State>> {
   let saddr: SocketAddr = format!("{}:{}", host, port).parse().expect("fails to parse address");
   let Ok(stream) = TcpStream::connect_timeout(&saddr, Duration::from_secs(timeout)) else {
     return Err(rustler::error::Error::Atom("fails to connect"));
   };
-  let Ok(_) = stream.set_read_timeout(Some(Duration::from_secs(60))) else {
-    return Err(rustler::error::Error::Atom("fails to connect"));
+  let Ok(stream_params) = stream.try_clone() else {
+    return Err(rustler::error::Error::Atom("fails clone stream"));
+  };
+
+  let Ok(_) = stream_params.set_read_timeout(Some(Duration::from_secs(5))) else {
+    return Err(rustler::error::Error::Atom("set timeout"));
   };
 
   let conn = fs::Connection::new(stream);
@@ -40,23 +45,22 @@ fn start_link<'a>(env: Env<'a>,
     return Err(rustler::error::Error::Atom("invalid_password"));
   };
 
+  let Ok(_) = client.event(events) else {
+    return Err(rustler::error::Error::Atom("invalid_event"));
+  };
+
   let client = Arc::new(RwLock::new(client));
   let listener_client = client.clone();
   let state = ResourceArc::new(State{
     client: client
   });
+
+  let Ok(_) = stream_params.set_read_timeout(Some(Duration::from_secs(45))) else {
+    return Err(rustler::error::Error::Atom("set timeout"));
+  };
   spawn_dispatcher(env, listener, listener_client);
 
   Ok(state)
-}
-
-#[rustler::nif(schedule = "DirtyIo")]
-fn events<'a>(env: Env<'a>, state: ResourceArc<State>, name: &'a str) -> NifResult<Term<'a>> {
-  let mut client = state.client.write().unwrap();
-  let Ok(_) = client.event(name) else {
-    return Err(rustler::error::Error::Atom("invalid_event"));
-  };
-  Ok(atom::ok().to_term(env))
 }
 
 fn spawn_dispatcher(env: Env<'_>, listener: LocalPid, client: FSConn) {
@@ -99,4 +103,4 @@ fn load(env: Env, _: Term) -> bool {
   true
 }
 
-rustler::init!("Elixir.ESLx.FreeswitchESLRs.Events", [start_link, events], load = load);
+rustler::init!("Elixir.ESLx.FreeswitchESLRs.Events", [start_link], load = load);

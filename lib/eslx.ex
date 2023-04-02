@@ -22,7 +22,7 @@ defmodule ESLx do
     Continually receive events.
     """
 
-    def start_link(connection_details, timeout) do
+    def start_link(connection_details, events, timeout) do
       # ESLx.LibESL.Events.start_
       {:ok,
        ESLx.FreeswitchESLRs.Events.start_link(
@@ -30,12 +30,10 @@ defmodule ESLx do
          ConnectionDetails.host(connection_details),
          ConnectionDetails.port(connection_details),
          ConnectionDetails.password(connection_details),
+         events,
          timeout
        )}
     end
-
-    # defdelegate events(node, events), to: ESLx.LibESL.Events
-    defdelegate events(node, events), to: ESLx.FreeswitchESLRs.Events
   end
 
   @doc """

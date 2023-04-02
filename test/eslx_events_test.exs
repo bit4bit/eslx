@@ -25,8 +25,7 @@ Reply-Text: +OK event listener enabled plain
     esl_url =
       URI.parse("esl://:password@#{StubTCPServer.host(server)}:#{StubTCPServer.port(server)}")
 
-    {:ok, esl} = ESLx.Events.start_link(esl_url, 1000)
-    assert :ok = ESLx.Events.events(esl, "ALL")
+    {:ok, _esl} = ESLx.Events.start_link(esl_url, "ALL", 1000)
   end
 
   test "notify events" do
@@ -62,10 +61,18 @@ Content-Type: text/event-plain
       StubTCPServer.Conn.resp(conn, "Content-Type: command/reply\nReply-Text: +OK accepted\n\n")
     end)
 
+    StubTCPServer.stub(server, :events, "event plain ALL", fn conn ->
+      data = ~s(Content-Type: command/reply
+Reply-Text: +OK event listener enabled plain
+
+)
+      StubTCPServer.Conn.resp(conn, data)
+    end)
+
     esl_url =
       URI.parse("esl://:password@#{StubTCPServer.host(server)}:#{StubTCPServer.port(server)}")
 
-    {:ok, _esl} = ESLx.Events.start_link(esl_url, 1000)
+    {:ok, _esl} = ESLx.Events.start_link(esl_url, "ALL", 1000)
 
     StubTCPServer.wait_for(server, :logged_in, 1_000)
 
