@@ -22,7 +22,7 @@ defmodule Eslx.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :ranch]
     ]
   end
 
@@ -36,8 +36,10 @@ defmodule Eslx.MixProject do
       {:rustler, "~> 0.27.0"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
-      {:benchee, "~> 1.1", only: :dev},
-      {:ranch, "~> 2.1", only: [:dev, :test]}
+      {:benchee, "~> 1.1", only: [:dev, :test]},
+      {:ranch, "~> 2.1", only: [:dev, :test]},
+      {:switchx, "~> 0.1.1", only: [:dev, :test]},
+      {:elixir_mod_event, "~> 0.0.6", only: [:dev, :test]}
     ]
   end
 
