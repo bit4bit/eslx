@@ -13,11 +13,7 @@ use rustler::{Env, NifResult, Term, Atom};
 use rustler::resource::ResourceArc;
 use freeswitch_esl_rs as fs;
 
-type FSConn = Arc<RwLock<fs::Client<TcpStream>>>;
-
-struct State {
-  client: FSConn
-}
+type FSConn = fs::Client<TcpStream>;
 
 #[rustler::nif(schedule = "DirtyIo")]
 fn start_link<'a>(env: Env<'a>,
@@ -25,7 +21,7 @@ fn start_link<'a>(env: Env<'a>,
                   host: &'a str, port: i32,
                   password: &'a str,
                   events: &'a str,
-                  timeout: u64) -> NifResult<ResourceArc<State>> {
+                  timeout: u64) -> NifResult<()> {
   let saddr: SocketAddr = format!("{}:{}", host, port).parse().expect("fails to parse address");
   let Ok(stream) = TcpStream::connect_timeout(&saddr, Duration::from_secs(timeout)) else {
     return Err(rustler::error::Error::Atom("fails to connect"));
@@ -49,27 +45,19 @@ fn start_link<'a>(env: Env<'a>,
     return Err(rustler::error::Error::Atom("invalid_event"));
   };
 
-  let client = Arc::new(RwLock::new(client));
-  let listener_client = client.clone();
-  let state = ResourceArc::new(State{
-    client: client
-  });
-
   let Ok(_) = stream_params.set_read_timeout(Some(Duration::from_secs(45))) else {
     return Err(rustler::error::Error::Atom("set timeout"));
   };
-  spawn_dispatcher(env, listener, listener_client);
+  spawn_dispatcher(env, listener, client);
 
-  Ok(state)
+  Ok(())
 }
 
-fn spawn_dispatcher(env: Env<'_>, listener: LocalPid, client: FSConn) {
+fn spawn_dispatcher(env: Env<'_>, listener: LocalPid, mut client: FSConn) {
   thread::spawn::<thread::ThreadSpawner, _>(env, move |env: Env<'_>| {
+    let client = &mut client;
     loop {
-      let mut client = client.write().unwrap();
       let result = client.pull_event();
-      // TODO: freeswitch-esl-rs must allow multiple writers
-      drop(client);
 
       match result {
         Ok(event) => {
@@ -99,7 +87,6 @@ fn atom_from_str(env: Env, name: &str) -> Atom {
 }
 
 fn load(env: Env, _: Term) -> bool {
-  rustler::resource!(State, env);
   true
 }
 
