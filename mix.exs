@@ -4,7 +4,7 @@ defmodule Eslx.MixProject do
   def project do
     [
       app: :eslx,
-      version: "0.1.1",
+      version: "0.1.2",
       elixir: "~> 1.13",
       description: "freeswitch connector using esl.c",
       # add unifex and bundlex to compilers
@@ -22,7 +22,7 @@ defmodule Eslx.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger, :ranch]
+      extra_applications: [:logger]
     ]
   end
 
@@ -47,7 +47,7 @@ defmodule Eslx.MixProject do
     [
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/bit4bit/eslx"},
-      files: ~w(lib c_src bundlex.exs mix.exs README.md LICENSE)
+      files: ~w(lib native mix.exs README.md LICENSE)
     ]
   end
 end
