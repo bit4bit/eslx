@@ -4,7 +4,7 @@ defmodule Eslx.MixProject do
   def project do
     [
       app: :eslx,
-      version: "0.1.2",
+      version: "0.1.3",
       elixir: "~> 1.13",
       description: "freeswitch connector using esl.c",
       # add unifex and bundlex to compilers
@@ -33,7 +33,7 @@ defmodule Eslx.MixProject do
   defp deps do
     [
       {:jason, "~> 1.4"},
-      {:rustler, "~> 0.27.0"},
+      {:rustler, "~> 0.30.0", runtime: false},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
       {:benchee, "~> 1.1", only: [:dev, :test]},
